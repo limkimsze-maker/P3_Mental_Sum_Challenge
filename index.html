@@ -10,8 +10,9 @@
   <style>
     :root{
       /* 🍭 Candy-Rainbow Matrix (kid-friendly) */
-      --bg:#fff0f6;     /* strawberry milk */
-      --bg2:#e8f7ff;    /* sky ice */
+      --bg:#fff7c7;   /* sunny butter */
+--bg2:#d8f7ff;  /* happy sky */
+
 
       --ink:#ecfff7;    /* mint-white text on dark glass */
       --ink2:#b6ffe4;
@@ -48,11 +49,12 @@
 
       /* 🍬 more colourful background blobs */
       background:
-        radial-gradient(900px 600px at 12% 8%, rgba(255,62,165,.22), transparent 55%),
-        radial-gradient(900px 600px at 88% 12%, rgba(0,229,255,.18), transparent 55%),
-        radial-gradient(900px 600px at 40% 92%, rgba(255,183,3,.16), transparent 55%),
-        radial-gradient(900px 600px at 8% 78%, rgba(168,85,247,.16), transparent 55%),
-        linear-gradient(180deg, var(--bg), var(--bg2));
+  radial-gradient(900px 600px at 12% 8%, rgba(255,183,3,.26), transparent 58%),  /* sunshine */
+  radial-gradient(900px 600px at 88% 12%, rgba(0,229,255,.20), transparent 58%), /* aqua */
+  radial-gradient(900px 600px at 40% 92%, rgba(168,85,247,.16), transparent 58%),/* lilac */
+  radial-gradient(900px 600px at 10% 80%, rgba(255,62,165,.14), transparent 60%), /* candy pink */
+  linear-gradient(180deg, var(--bg), var(--bg2));
+
       background-attachment: fixed;
       overflow-x:hidden;
     }
@@ -73,7 +75,8 @@
     body::after{
       content:"";
       position:fixed; inset:-60px;
-      background:radial-gradient(closest-side, transparent 55%, rgba(0,0,0,.35));
+     background:radial-gradient(closest-side, transparent 62%, rgba(0,0,0,.12));
+
       pointer-events:none;
       z-index:0;
     }
@@ -704,3 +707,4 @@
   </script>
 </body>
 </html>
+
