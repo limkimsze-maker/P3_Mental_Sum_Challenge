@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <link rel="icon" href="kimsze_sharp16.ico" type="image/x-icon">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>P3 Mental Sum Challenge — Lim Kim Sze</title>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* ✅ Change: light pink background base */
+      --bg:#ffe3ee;
+      --bg2:#ffd1e6;
+
+      --ink:#d7ffe9;
+      --ink2:#8fffc8;
+
+      --grid:rgba(34, 255, 143, .10);
+      --neon:#22ff8f;
+      --neon2:#00e5ff;
+
+      --card:#071013cc;
+      --cardLine:rgba(34,255,143,.22);
+
+      --shadow: 0 18px 55px rgba(0,0,0,.35);
+      --radius:18px;
+
+      --btnBg:rgba(34,255,143,.12);
+      --btnLine:rgba(34,255,143,.55);
+
+      --yellow:#fde047;
+      --yellowLine:#f59e0b;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--ink);
+      font-family:Lexend,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+
+      /* ✅ Change: light pink background + a touch of blue glow */
+      background:
+        radial-gradient(900px 600px at 15% 10%, rgba(255,105,180,.22), transparent 55%),
+        radial-gradient(900px 600px at 85% 15%, rgba(0,229,255,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      background-attachment: fixed;
+      overflow-x:hidden;
+    }
+
+    /* subtle “terminal grid” + vignette */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      background:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity:.28;
+      pointer-events:none;
+      mix-blend-mode:screen;
+      z-index:0;
+    }
+    body::after{
+      content:"";
+      position:fixed; inset:-60px;
+      background:radial-gradient(closest-side, transparent 55%, rgba(0,0,0,.35));
+      pointer-events:none;
+      z-index:0;
+    }
+
+    /* Matrix code rain canvas */
+    #rain{
+      position:fixed; inset:0;
+      z-index:0; /* behind content */
+      pointer-events:none;
+      opacity:.50;
+      filter: blur(.2px);
+      display:block;
+    }
+
+    header{
+      padding:34px 16px 16px;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+
+    /* ✅ Added: dark “glass” hero so neon text stays readable on light pink bg */
+    .hero{
+      max-width:1020px;
+      margin:0 auto 14px;
+      padding:16px 14px;
+      border-radius:22px;
+      border:1px solid rgba(34,255,143,.18);
+      background:rgba(3,12,16,.55);
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+    }
+
+    header h1{
+      margin:0 0 10px;
+      font-size:clamp(1.55rem, 2.6vw, 2.35rem);
+      letter-spacing:.6px;
+      text-shadow: 0 0 18px rgba(34,255,143,.25);
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
+    header p{margin:0;color:rgba(143,255,200,.85)}
+
+    .brain{
+      width:30px; height:30px;
+      display:inline-block;
+      filter: drop-shadow(0 0 10px rgba(0,229,255,.22));
+    }
+
+    .wrap{max-width:1150px;margin:0 auto;padding:14px 16px 28px; position:relative; z-index:1}
+
+    /* top quick links */
+    .jump{
+      display:flex; flex-wrap:wrap; gap:10px;
+      justify-content:center;
+      margin:14px auto 22px;
+      padding:10px;
+      max-width:1020px;
+      background:rgba(3,12,16,.55);
+      border:1px solid rgba(34,255,143,.18);
+      border-radius:999px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+    }
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      text-decoration:none;
+      color:var(--ink);
+      font-weight:800;
+      font-size:.9rem;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(34,255,143,.22);
+      background:rgba(34,255,143,.08);
+      transition:transform .1s ease, box-shadow .1s ease, filter .1s ease;
+      text-shadow: 0 0 14px rgba(34,255,143,.18);
+    }
+    .chip:hover{
+      transform:translateY(-1px);
+      box-shadow:0 18px 28px rgba(0,0,0,.22);
+      filter:saturate(1.12);
+    }
+    .dot{width:10px;height:10px;border-radius:999px;display:inline-block}
+    .dot.math{background:linear-gradient(135deg, var(--neon), var(--neon2))}
+    .dot.quiz{background:linear-gradient(135deg, #a855f7, #00e5ff)}
+
+    /* Matrix terminal toggle (Option C: RAIN::TRUE/FALSE) */
+    .toggle-terminal{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:2px;
+
+      padding:8px 12px;
+      border-radius:12px;
+
+      border:1px solid rgba(34,255,143,.35);
+      background:rgba(2, 10, 12, .55);
+
+      color:rgba(215,255,233,.95);
+      font-weight:900;
+      font-size:.9rem;
+
+      cursor:pointer;
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.22),
+        0 0 0 1px rgba(34,255,143,.12) inset,
+        0 0 18px rgba(34,255,143,.12);
+
+      text-shadow:0 0 14px rgba(34,255,143,.18);
+      transition:transform .1s ease, box-shadow .1s ease, filter .1s ease, border-color .1s ease;
+    }
+    .toggle-terminal .label{display:inline-block; min-width:10.8ch; text-align:left}
+    .toggle-terminal:hover{
+      transform:translateY(-1px);
+      box-shadow:
+        0 20px 34px rgba(0,0,0,.26),
+        0 0 0 1px rgba(34,255,143,.18) inset,
+        0 0 24px rgba(34,255,143,.18);
+      filter:saturate(1.12);
+    }
+    .toggle-terminal:active{transform:translateY(0)}
+    .toggle-terminal:focus-visible{outline:3px solid rgba(34,255,143,.45); outline-offset:2px}
+    .toggle-terminal.off{
+      border-color:rgba(148,163,184,.35);
+      background:rgba(2, 10, 12, .40);
+      color:rgba(226,232,240,.85);
+      text-shadow:none;
+      box-shadow:
+        0 14px 26px rgba(0,0,0,.22),
+        0 0 0 1px rgba(148,163,184,.10) inset;
+    }
+    .cursor{
+      display:inline-block;
+      margin-left:2px;
+      opacity:1;
+      animation: blink 1s steps(2, end) infinite;
+    }
+    .toggle-terminal.off .cursor{opacity:.4}
+    @keyframes blink{ 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+    .section{margin:22px 0 28px}
+    .section-head{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+      padding:14px 14px 12px;
+      border-radius:18px;
+      border:1px solid rgba(34,255,143,.20);
+      background:rgba(2,10,12,.62);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 55px rgba(0,0,0,.25);
+      margin-bottom:14px;
+    }
+    .section-title{
+      margin:0;
+      font-size:1.15rem;
+      display:flex; align-items:center; gap:10px;
+      text-shadow: 0 0 16px rgba(34,255,143,.20);
+    }
+    .section-sub{
+      margin:4px 0 0;
+      color:rgba(143,255,200,.85);
+      font-size:.92rem;
+      font-weight:500;
+    }
+    .section-tag{
+      font-size:.8rem;
+      font-weight:900;
+      color:rgba(143,255,200,.90);
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(34,255,143,.22);
+      background:rgba(34,255,143,.08);
+      white-space:nowrap;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(265px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      position:relative;
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      border:1px solid var(--cardLine);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+      backdrop-filter: blur(10px);
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      filter:saturate(1.08);
+      box-shadow: 0 26px 75px rgba(0,0,0,.34);
+    }
+
+    /* top neon scan bar */
+    .card::before{
+      content:"";
+      position:absolute; inset:0 0 auto 0;
+      height:6px;
+      background:linear-gradient(135deg, rgba(34,255,143,.95), rgba(0,229,255,.75));
+    }
+    .card.quiz::before{background:linear-gradient(135deg, rgba(168,85,247,.85), rgba(0,229,255,.75))}
+
+    /* faint diagonal “code” lines */
+    .card::after{
+      content:"";
+      position:absolute; inset:-120px -80px auto auto;
+      width:320px; height:220px;
+      transform: rotate(18deg);
+      background:
+        repeating-linear-gradient(
+          0deg,
+          rgba(34,255,143,.10),
+          rgba(34,255,143,.10) 1px,
+          transparent 1px,
+          transparent 9px
+        );
+      opacity:.35;
+      pointer-events:none;
+      mix-blend-mode:screen;
+      border-radius:18px;
+    }
+
+    .card h3{
+      margin:6px 0 6px;
+      font-size:1.03rem;
+      letter-spacing:.2px;
+    }
+    .card p{
+      margin:0 0 10px;
+      color:rgba(215,255,233,.82);
+      font-size:.95rem;
+      line-height:1.35;
+    }
+
+    .badges{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 12px}
+    .badge{
+      font-size:.75rem;
+      font-weight:900;
+      padding:3px 10px;
+      border-radius:999px;
+      border:1px solid rgba(34,255,143,.18);
+      background:rgba(34,255,143,.06);
+      color:rgba(215,255,233,.92);
+      text-shadow: 0 0 10px rgba(34,255,143,.10);
+    }
+    .badge.quiz{border-color:rgba(168,85,247,.30); background:rgba(168,85,247,.10)}
+    .badge.ready{border-color:rgba(253,224,71,.35); background:rgba(253,224,71,.08); color:#fff7cc}
+
+    .actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:9px 12px;
+      border-radius:14px;
+      border:1px solid var(--btnLine);
+      text-decoration:none;
+      color:var(--ink);
+      background:var(--btnBg);
+      font-weight:900;
+      font-size:.9rem;
+      transition:transform .08s ease, box-shadow .08s ease, filter .08s ease;
+      box-shadow: 0 14px 26px rgba(0,0,0,.22);
+    }
+    .btn:hover{transform:translateY(-1px); box-shadow:0 20px 34px rgba(0,0,0,.26); filter:saturate(1.12)}
+    .btn:active{transform:translateY(0)}
+    .btn.primary{
+      color:#02110a;
+      border-color:transparent;
+      background:linear-gradient(135deg, rgba(34,255,143,.95), rgba(0,229,255,.65));
+      text-shadow:none;
+    }
+    .btn.purple{
+      color:#040b10;
+      border-color:transparent;
+      background:linear-gradient(135deg, rgba(168,85,247,.90), rgba(0,229,255,.55));
+      text-shadow:none;
+    }
+
+    .note{
+      margin-top:10px;
+      font-size:.86rem;
+      color:rgba(143,255,200,.80);
+      line-height:1.35;
+    }
+
+    footer{
+      max-width:1150px;
+      margin:30px auto 24px;
+      color:rgba(3,12,16,.78);
+      font-size:.92rem;
+      padding:0 16px;
+      text-align:center;
+      position:relative;
+      z-index:1;
+    }
+    footer a{color:inherit}
+    footer img{vertical-align:middle;margin-left:10px}
+
+    .anchor{scroll-margin-top:18px}
+
+    @media (prefers-reduced-motion: reduce){
+      .btn,.chip,.card,.toggle-terminal{transition:none}
+      .cursor{animation:none}
+    }
+  </style>
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z848TQ1P2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6Z848TQ1P2');
+  </script>
+  <script src="https://cdn.counter.dev/script.js" data-id="825e93b6-ce99-40ef-8bcc-125f13297433" data-utcoffset="8"></script>
+</head>
+
+<body>
+  <canvas id="rain" aria-hidden="true"></canvas>
+
+  <header>
+    <div class="hero">
+      <h1>
+        <!-- ✅ Brain icon beside title -->
+        <svg class="brain" viewBox="0 0 64 64" aria-hidden="true">
+          <path fill="rgba(0,229,255,.25)" d="M23 10c-6 0-11 5-11 11v22c0 6 5 11 11 11h2V10h-2z"/>
+          <path fill="rgba(34,255,143,.18)" d="M41 10c6 0 11 5 11 11v22c0 6-5 11-11 11h-2V10h2z"/>
+          <path fill="none" stroke="rgba(215,255,233,.9)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"
+            d="M25 12c-6 0-11 5-11 11v19c0 6 5 11 11 11m14-41c6 0 11 5 11 11v19c0 6-5 11-11 11M25 18c-3 0-6 3-6 6m6 2c-3 0-6 3-6 6m6 2c-3 0-6 3-6 6m26-20c3 0 6 3 6 6m-6 2c3 0 6 3 6 6m-6 2c3 0 6 3 6 6M32 12v41"/>
+        </svg>
+        P3 Mental Sum Challenge
+      </h1>
+      <p>Pick a technique, then try a quiz. Fast brains only 😄</p>
+    </div>
+
+    <nav class="jump" aria-label="Jump to sections">
+      <a class="chip" href="#add-tech"><span class="dot math"></span> Addition • Techniques</a>
+      <a class="chip" href="#add-quiz"><span class="dot quiz"></span> Addition • Quizzes</a>
+      <a class="chip" href="#sub-tech"><span class="dot math"></span> Subtraction • Techniques</a>
+      <a class="chip" href="#sub-quiz"><span class="dot quiz"></span> Subtraction • Quizzes</a>
+
+      <!-- Matrix toggle: default ON -->
+      <button class="toggle-terminal" id="rainToggle" type="button" aria-pressed="true">
+        <span class="label">RAIN::TRUE</span><span class="cursor" aria-hidden="true">_</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <!-- ===================== ADDITION • TECHNIQUES (4) ===================== -->
+    <section id="add-tech" class="section anchor">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title"><span class="dot math"></span> Addition • Techniques</h2>
+          <p class="section-sub">Step-by-step methods for mental addition (teacher demo + pupil practice).</p>
+        </div>
+        <div class="section-tag">Total: 4</div>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Add the Tens, Then Add the Ones</h3>
+          <p>Split the second number into tens and ones. Add tens first, then ones.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Replace the link with your technique page URL.</div>
+        </article>
+
+        <article class="card">
+          <h3>Add by Making a Ten First</h3>
+          <p>Add the ones to make the next ten, then add the remaining tens/ones.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Good for bridging (e.g., 38 + 7).</div>
+        </article>
+
+        <article class="card">
+          <h3>Add Near 100 (One Number 91–99)</h3>
+          <p>Compensation method: make 100 first, then adjust.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Example: 97 + 56 → (100 + 56) − 3.</div>
+        </article>
+
+        <article class="card">
+          <h3>Add Two Numbers Near 100 (95–99)</h3>
+          <p>Use double-compensation: round to 100s, then subtract extras.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Fast for pairs like 98 + 96.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== ADDITION • QUIZZES (4) ===================== -->
+    <section id="add-quiz" class="section anchor">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title"><span class="dot quiz"></span> Addition • Quizzes</h2>
+          <p class="section-sub">Timed brain challenges (1 question per screen, instant feedback).</p>
+        </div>
+        <div class="section-tag">Total: 4</div>
+      </div>
+
+      <div class="grid">
+        <article class="card quiz">
+          <h3>/quiz — Add Tens then Ones</h3>
+          <p>8 timed questions. Auto-advance on correct, steps shown only when wrong/time-up.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Replace the link with your quiz URL.</div>
+        </article>
+
+        <article class="card quiz">
+          <h3>/quiz — Add Near 100</h3>
+          <p>One addend is 91–99. Make 100 first, then adjust.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Great for compensation practice.</div>
+        </article>
+
+        <article class="card quiz">
+          <h3>/quiz — Make 100</h3>
+          <p>One number is 91–99. Add the complement to reach 100, then finish.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Time-up reveals answer + Try Again.</div>
+        </article>
+
+        <article class="card quiz">
+          <h3>/quiz — Both Numbers 95–99</h3>
+          <p>Two addends are close to 100. Use double-compensation for speed.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Replace with your hosted quiz URL.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== SUBTRACTION • TECHNIQUES (3) ===================== -->
+    <section id="sub-tech" class="section anchor">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title"><span class="dot math"></span> Subtraction • Techniques</h2>
+          <p class="section-sub">Mental subtraction methods (especially regrouping + compensation).</p>
+        </div>
+        <div class="section-tag">Total: 3</div>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <h3>Subtract 9: Subtract 10, Add 1</h3>
+          <p>Fast method for −9: subtract 10 then add the extra 1 back.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Matches your “Subtract more, then add the extra” style.</div>
+        </article>
+
+        <article class="card">
+          <h3>Subtract 6–9 with Regrouping</h3>
+          <p>Break apart ones/tens, regroup when needed, then subtract step-by-step.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Good for 2-digit subtraction requiring exchange.</div>
+        </article>
+
+        <article class="card">
+          <h3>Subtract Near 100 (90s)</h3>
+          <p>Compensation method: subtract 100, then adjust back using the difference.</p>
+          <div class="badges">
+            <span class="badge">Technique</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn primary" href="#" target="_blank" rel="noopener">Open</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Example: 74 − 97 → (74 − 100) + 3.</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== SUBTRACTION • QUIZZES (3) ===================== -->
+    <section id="sub-quiz" class="section anchor">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title"><span class="dot quiz"></span> Subtraction • Quizzes</h2>
+          <p class="section-sub">Timed regrouping challenges (steps only appear when wrong/time-up).</p>
+        </div>
+        <div class="section-tag">Total: 3</div>
+      </div>
+
+      <div class="grid">
+        <article class="card quiz">
+          <h3>/quiz — Subtract Ending With 9</h3>
+          <p>Subtract numbers ending with 9 using “subtract 10, add 1”.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Replace with your quiz URL.</div>
+        </article>
+
+        <article class="card quiz">
+          <h3>/quiz — Subtract 6, 7, 8 or 9 (Regrouping)</h3>
+          <p>2-digit subtraction with exchange required. No marks if first attempt is wrong.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Time-up reveals answer + Try Again.</div>
+        </article>
+
+        <article class="card quiz">
+          <h3>/quiz — Subtract Near 100 (90s)</h3>
+          <p>Use compensation (subtract 100, then adjust) under time pressure.</p>
+          <div class="badges">
+            <span class="badge quiz">Quiz</span><span class="badge">P3</span><span class="badge ready">Ready</span>
+          </div>
+          <div class="actions">
+            <a class="btn purple" href="#" target="_blank" rel="noopener">Try Quiz!</a>
+            <a class="btn" href="#" target="_blank" rel="noopener">Source</a>
+          </div>
+          <div class="note">Replace with your hosted quiz URL.</div>
+        </article>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Designed by Lim Kim Sze © 2026 • P3 Mental Sum Challenge
+    <a href="https://hits.sh/limkimsze-maker.github.io/">
+      <img alt="Hits" src="https://hits.sh/limkimsze-maker.github.io.svg?style=for-the-badge&label=Views&color=007ec6" />
+    </a>
+  </footer>
+
+  <script>
+    // Matrix-style code rain with ON/OFF terminal toggle (default ON, remembers choice)
+    (function(){
+      const c = document.getElementById('rain');
+      const btn = document.getElementById('rainToggle');
+      if (!c || !btn) return;
+
+      const labelEl = btn.querySelector('.label');
+      const ctx = c.getContext('2d', { alpha:true });
+
+      const glyphs = (
+        "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン" +
+        "0123456789" +
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
+        "abcdefghijklmnopqrstuvwxyz"
+      ).split("");
+
+      let w=0, h=0, cols=0, drops=[];
+      let rafId = 0;
+      let running = false;
+
+      function resize(){
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        w = Math.floor(window.innerWidth);
+        h = Math.floor(window.innerHeight);
+        c.width = Math.floor(w * dpr);
+        c.height = Math.floor(h * dpr);
+        c.style.width = w + "px";
+        c.style.height = h + "px";
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+
+        const fontSize = 16;
+        cols = Math.max(1, Math.floor(w / fontSize));
+        drops = Array.from({length: cols}, () => Math.random() * h / fontSize);
+
+        ctx.font = "700 16px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
+        ctx.textBaseline = "top";
+      }
+
+      function clearCanvas(){ ctx.clearRect(0,0,w,h); }
+
+      let last=0;
+      function frame(t){
+        if (!running) return;
+
+        // cap to ~40fps
+        if (t - last < 25) { rafId = requestAnimationFrame(frame); return; }
+        last = t;
+
+        // ✅ Change: fade with light pink tint (matches the background)
+        ctx.fillStyle = "rgba(255, 209, 230, 0.14)";
+        ctx.fillRect(0,0,w,h);
+
+        const fontSize = 16;
+        for (let i=0; i<cols; i++){
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+
+          const ch = glyphs[(Math.random()*glyphs.length)|0];
+
+          // ✅ Change: light blue rain (with occasional brighter highlight)
+          ctx.fillStyle = (Math.random() < 0.03)
+            ? "rgba(255, 255, 255, .55)"
+            : "rgba(0, 160, 255, .55)";
+
+          ctx.fillText(ch, x, y);
+
+          if (y > h && Math.random() > 0.975) drops[i] = 0;
+          drops[i] += 0.85 + Math.random()*0.75;
+        }
+
+        rafId = requestAnimationFrame(frame);
+      }
+
+      function setButtonState(on){
+        btn.classList.toggle('off', !on);
+        btn.setAttribute('aria-pressed', String(on));
+        if (labelEl) labelEl.textContent = on ? 'RAIN::TRUE' : 'RAIN::FALSE';
+      }
+
+      function start(){
+        if (running) return;
+        c.style.display = "block";
+        resize();
+        running = true;
+        rafId = requestAnimationFrame(frame);
+      }
+
+      function stop(){
+        running = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = 0;
+        c.style.display = "none";
+        clearCanvas();
+      }
+
+      function setEnabled(on){
+        localStorage.setItem('matrixRainEnabled', on ? '1' : '0');
+        if (on) start(); else stop();
+        setButtonState(on);
+      }
+
+      // Default ON unless user previously turned it OFF
+      const saved = localStorage.getItem('matrixRainEnabled');
+      const enabled = (saved === null) ? true : (saved === '1');
+
+      btn.addEventListener('click', () => setEnabled(!running));
+      window.addEventListener('resize', () => { if (running) resize(); }, {passive:true});
+
+      setButtonState(enabled);
+      if (enabled) start(); else stop();
+    })();
+  </script>
+</body>
+</html>
